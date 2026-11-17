@@ -1,0 +1,54 @@
+name: CI (reusable)
+
+# Unsigned build + unit tests for a macOS app. Call from the app repo:
+#
+#   jobs:
+#     test:
+#       uses: d0g4sale/macos-release-workflows/.github/workflows/ci.yml@v1
+#
+# Reads per-app settings from the CALLER's .github/build.env (see README).
+on:
+  workflow_call: {}
+
+jobs:
+  test:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Load build config
+        run: grep -Ev '^[[:space:]]*(#|$)' .github/build.env >> "$GITHUB_ENV"
+
+      # Use the newest stable Xcode the runner image ships. This auto-tracks
+      # runner updates instead of pinning a version that may not be installed.
+      # The project's deployment target must be <= the SDK this Xcode provides.
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Show toolchain
+        run: xcodebuild -version
+
+      # Only for repos whose .xcodeproj is generated from project.yml.
+      - name: Generate Xcode project
+        if: env.XCODEGEN == 'true'
+        run: |
+          # The runner image pre-taps aws/tap, which newer Homebrew flags as
+          # untrusted and warns about on every invocation. Untap it (tolerating
+          # its absence on future images) to keep logs clean.
+          brew untap aws/tap 2>/dev/null || true
+          brew install xcodegen
+          xcodegen generate
+
+      # Scoped to the unit-test bundle: UI tests relaunch the app repeatedly,
+      # which is slow and flaky on headless CI.
+      - name: Build & unit test
+        run: |
+          xcodebuild test \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            -only-testing:"$UNIT_TEST_TARGET" \
+            CODE_SIGNING_ALLOWED=NO
