@@ -41,6 +41,10 @@ jobs:
           brew install xcodegen
           xcodegen generate
 
+      # -skipPackagePluginValidation / -skipMacroValidation: CI can't click
+      # Xcode's "Trust & Enable" prompt for SwiftPM build plugins and macros
+      # (e.g. SwiftTerm's SwiftTermBuildInfoPlugin), so trust the dependencies
+      # the app repo already chose to depend on.
       # Scoped to the unit-test bundle: UI tests relaunch the app repeatedly,
       # which is slow and flaky on headless CI.
       - name: Build & unit test
@@ -51,4 +55,6 @@ jobs:
             -configuration Debug \
             -destination 'platform=macOS' \
             -only-testing:"$UNIT_TEST_TARGET" \
+            -skipPackagePluginValidation \
+            -skipMacroValidation \
             CODE_SIGNING_ALLOWED=NO

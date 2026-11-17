@@ -215,6 +215,8 @@ jobs:
         run: xcodegen generate
 
       # --- Gate the release on the unit tests: don't sign/notarize a bad build ---
+      # (-skip*Validation: trust SwiftPM plugins/macros non-interactively; CI
+      # can't answer Xcode's "Trust & Enable" prompt.)
       - name: Run unit tests
         run: |
           xcodebuild test \
@@ -223,6 +225,8 @@ jobs:
             -configuration Debug \
             -destination 'platform=macOS' \
             -only-testing:"$UNIT_TEST_TARGET" \
+            -skipPackagePluginValidation \
+            -skipMacroValidation \
             CODE_SIGNING_ALLOWED=NO
 
       # --- Import the Developer ID signing certificate into a throwaway keychain ---
@@ -261,6 +265,8 @@ jobs:
             -configuration Release \
             -destination 'generic/platform=macOS' \
             -archivePath "$ARCHIVE" \
+            -skipPackagePluginValidation \
+            -skipMacroValidation \
             MARKETING_VERSION="$VERSION" \
             CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
             CODE_SIGN_STYLE=Manual \
@@ -286,6 +292,8 @@ jobs:
 
           xcodebuild -exportArchive \
             -archivePath "$ARCHIVE" \
+            -skipPackagePluginValidation \
+            -skipMacroValidation \
             -exportPath "$EXPORT_DIR" \
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
 
