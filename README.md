@@ -91,8 +91,9 @@ jobs:
       NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
 ```
 
-Secrets are passed explicitly (not `secrets: inherit`) because callers live
-under a different owner than this repo.
+Secrets are passed explicitly rather than with `secrets: inherit`, so the
+same caller works from any owner. (Inside the d0g4sale org, `inherit` would
+also work.)
 
 ### 4. Repository secrets
 
@@ -104,6 +105,11 @@ under a different owner than this repo.
 | `NOTARY_KEY_BASE64` | base64 of the App Store Connect API key `.p8` |
 | `NOTARY_KEY_ID` | that key's ID |
 | `NOTARY_ISSUER_ID` | App Store Connect issuer ID |
+
+Inside d0g4sale these can be **organization secrets** shared with the app
+repos (Settings → Secrets and variables → Actions), so a certificate or notary
+key rotation is a single update. A repository secret with the same name
+overrides the organization one.
 
 A release fails up front with the names of any missing secrets.
 
