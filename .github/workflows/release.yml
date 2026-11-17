@@ -292,8 +292,6 @@ jobs:
 
           xcodebuild -exportArchive \
             -archivePath "$ARCHIVE" \
-            -skipPackagePluginValidation \
-            -skipMacroValidation \
             -exportPath "$EXPORT_DIR" \
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
 
